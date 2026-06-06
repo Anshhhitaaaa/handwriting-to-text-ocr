@@ -10,22 +10,32 @@ Scribe is a high-performance web application that transforms handwritten notes, 
 ## 📸 Screenshots
 | Original Handwriting | AI Processed & Extracted Text |
 | :--- | :--- |
-| ![Before](https://raw.githubusercontent.com/Anshhhitaaaa/handwriting-to-text-ocr/main/tests/sample_images/neat.jpg) | ![After](https://github.com/Anshhhitaaaa/handwriting-to-text-ocr/raw/main/screenshot_results.png) |
+| ![Before Image](https://raw.githubusercontent.com/Anshhhitaaaa/handwriting-to-text-ocr/main/tests/sample_images/neat.jpg) | ![After Image](https://github.com/Anshhhitaaaa/handwriting-to-text-ocr/raw/main/screenshot_results.png) |
 *(Upload your own screenshots to the repo and update these links)*
 
+### **Before and After Processing Example**
+Below is a real-world example of how Scribe cleans a handwritten letter and extracts the text with high accuracy.
+
+**Original Image:**
+![Before](https://raw.githubusercontent.com/Anshhhitaaaa/handwriting-to-text-ocr/main/tests/sample_images/neat.jpg)
+
+**AI Extracted & Cleaned Result:**
+![After](https://github.com/Anshhhitaaaa/handwriting-to-text-ocr/raw/main/screenshot_results.png)
+
+
 ## 🛠️ Tech Stack
-- **Backend:** Python, Flask, EasyOCR, OpenCV
+- **Backend:** Python, Flask, OCR.space API, OpenCV
 - **Frontend:** HTML5, CSS3 (Modern UI/UX with Glassmorphism), JavaScript (Vanilla)
 - **Image Processing:** NumPy, PIL (Pillow)
-- **Deployment:** Gunicorn, Procfile
+- **Deployment:** Vercel (Serverless Functions)
 
 ## ⚙️ How it works
 Every image uploaded goes through a sophisticated **Preprocessing Pipeline** before the AI reads it:
 1.  **Shadow Removal:** Morphological operations eliminate uneven lighting and shadows.
-2.  **Denoising:** Bilateral filtering removes paper grain while preserving sharp pen strokes.
+2.  **Denoising:** Gaussian blur removes paper grain while preserving sharp pen strokes.
 3.  **Deskewing:** Automatic tilt detection and rotation to straighten the text.
 4.  **Binarization:** High-contrast enhancement to help the AI distinguish ink from paper.
-5.  **OCR Extraction:** EasyOCR identifies characters and groups them into logical lines.
+5.  **OCR Extraction:** OCR.space Engine 2 (optimized for handwriting) identifies characters.
 6.  **Autocorrect:** A custom dictionary layer fixes common OCR misrecognitions (e.g., "Bihai" -> "Bihar").
 
 ## 🚀 How to run locally
@@ -43,7 +53,7 @@ Every image uploaded goes through a sophisticated **Preprocessing Pipeline** bef
 
 3.  **Run the Flask Backend:**
     ```bash
-    python backend/app.py
+    python api/index.py
     ```
 
 4.  **Open the Frontend:**
