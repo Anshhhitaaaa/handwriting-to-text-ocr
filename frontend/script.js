@@ -191,6 +191,13 @@ document.addEventListener('DOMContentLoaded', () => {
         extractedTextarea.value = data.full_text;
         updateStats(); // Initial stats
         confidenceVal.textContent = `${data.average_confidence}%`;
+        
+        // Add error handling for the image
+        cleanedPreview.onerror = () => {
+            console.error("Failed to load enhanced image from:", cleanedPreview.src);
+            cleanedPreview.src = imagePreview.src; // Fallback to original if enhanced fails
+        };
+        
         cleanedPreview.src = `${API_URL}${data.cleaned_image_url}?t=${new Date().getTime()}`;
 
         saveToHistory(data.full_text, data.average_confidence);
