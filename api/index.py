@@ -1,33 +1,68 @@
+import sys
+import os
+
+# Add the current directory to sys.path to ensure local imports work on Vercel
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import os
 from werkzeug.utils import secure_filename
-from preprocessor import ImagePreprocessor
-from ocr_engine import OCREngine
 import uuid
+import base64
+
+# Import local modules
+try:
+    import cv2
+    import numpy as np
+    from preprocessor import ImagePreprocessor
+    from ocr_engine import OCREngine
+    print("All modules imported successfully")
+except ImportError as e:
+    print(f"Import Error: {e}")
+    # Don't raise yet, let the app start so we might see logs
+    cv2 = None
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend communication
+CORS(app)
+
+@app.route('/test', methods=['GET'])
+def test():
+    return jsonify({
+        "status": "online",
+        "cv2": cv2.__version__ if cv2 else "missing",
+        "python": sys.version
+    })
 
 # Configuration
 # Use /tmp for Vercel (only writable directory in serverless)
-if os.environ.get('VERCEL'):
+if os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV'):
     UPLOAD_FOLDER = '/tmp'
 else:
-    # Point to the root uploads folder when running locally
+    # Local development path
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     UPLOAD_FOLDER = os.path.join(ROOT_DIR, 'uploads')
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# Ensure upload directory exists
+# Ensure upload directory exists (safe check for /tmp)
 if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+    try:
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    except Exception as e:
+        print(f"Directory creation error: {e}")
 
-# Initialize components
-preprocessor = ImagePreprocessor(output_dir=UPLOAD_FOLDER)
-ocr_engine = OCREngine()
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+# Global components (lazy loaded)
+_preprocessor = None
+_ocr_engine = None
+
+def get_components():
+    global _preprocessor, _ocr_engine
+    if _preprocessor is None:
+        _preprocessor = ImagePreprocessor(output_dir=app.config['UPLOAD_FOLDER'])
+    if _ocr_engine is None:
+        _ocr_engine = OCREngine()
+    return _preprocessor, _ocr_engine
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -37,10 +72,9 @@ def allowed_file(filename):
 def health_check():
     return jsonify({"status": "healthy", "message": "OCR Server is running"}), 200
 
-import base64
-
 @app.route('/extract', methods=['POST'])
 def extract_text():
+    preprocessor, ocr_engine = get_components()
     if 'image' not in request.files:
         return jsonify({"error": "No image file provided"}), 400
     

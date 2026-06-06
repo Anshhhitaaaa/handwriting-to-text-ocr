@@ -3,15 +3,19 @@
   "rewrites": [
     {
       "source": "/extract",
-      "destination": "/api/index.py"
+      "destination": "api/index.py"
     },
     {
       "source": "/health",
-      "destination": "/api/index.py"
+      "destination": "api/index.py"
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "/api/index.py"
+      "destination": "api/index.py"
+    },
+    {
+      "source": "/",
+      "destination": "/frontend/index.html"
     },
     {
       "source": "/(.*)",
