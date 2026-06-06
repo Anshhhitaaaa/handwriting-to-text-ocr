@@ -10,7 +10,10 @@ class OCREngine:
         self.url = 'https://api.ocr.space/parse/image'
 
     def _clean_text(self, text):
-        """Removes common OCR noise characters."""
+        """Removes common OCR noise characters and fixes handwriting misreads."""
+        # Normalize whitespace
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        
         corrections = {
             r'\bBihai\b': 'Bihar',
             r'\bftom\b': 'from',
@@ -25,17 +28,30 @@ class OCREngine:
             r'\bfot\b': 'for',
             r'\bnucleat\b': 'nuclear',
             r'\bYouself\b': 'Yourself',
-            r'\"ese/ivirg': 'myself',
+            r'ese/ivirg': 'myself', # Removed leading quote for better matching
             r'\bSQ\b': 'so',
+            r'\b1n\b': 'in',
+            r'\b0f\b': 'of',
+            r'\bvith\b': 'with',
+            r'\bthls\b': 'this',
+            r'\bhare\b': 'have',
         }
 
         for pattern, replacement in corrections.items():
             text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
 
+        # Remove common OCR artifacts
         text = text.replace('_', ' ')
         text = re.sub(r'[~{}[\]`|]', '', text)
-        text = re.sub(r' +', ' ', text)
-        return text.strip()
+        
+        # Clean up multiple spaces but keep line breaks
+        lines = []
+        for line in text.split('\n'):
+            cleaned_line = re.sub(r' +', ' ', line).strip()
+            if cleaned_line:
+                lines.append(cleaned_line)
+        
+        return '\n'.join(lines)
 
     def extract_text(self, image_path, lang='eng'):
         """

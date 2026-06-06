@@ -8,8 +8,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-backend/uploads/*
-!backend/uploads/.gitkeep
+uploads/*
+!uploads/.gitkeep
+api/__pycache__/
 .vscode/
 .idea/
 *.log

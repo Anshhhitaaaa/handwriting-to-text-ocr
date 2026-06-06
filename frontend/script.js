@@ -157,19 +157,27 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStep(0); // Uploading
 
         try {
+            console.log(`Sending request to: ${API_URL}/extract`);
+            
             // Simulate step progress for smoother UX
-            setTimeout(() => updateStep(1), 1000); // Cleaning
+            const progressTimer = setTimeout(() => updateStep(1), 1000); // Cleaning
             
             const response = await fetch(`${API_URL}/extract`, {
                 method: 'POST',
                 body: formData
+            }).catch(err => {
+                if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+                    throw new Error(`Cannot connect to backend at ${API_URL}. Please ensure the Flask server is running (python api/index.py)`);
+                }
+                throw err;
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Server error');
+                const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }));
+                throw new Error(errorData.error || `Server returned ${response.status}`);
             }
 
+            clearTimeout(progressTimer);
             updateStep(2); // Extracting
             const data = await response.json();
             
@@ -179,8 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 800);
             
         } catch (error) {
-            console.error(error);
-            alert('Error processing image. Please try again.');
+            console.error('OCR Error:', error);
+            alert(`Scribe Error: ${error.message}`);
             showLoading(false);
         }
     });
@@ -198,13 +206,12 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStats(); // Initial stats
         confidenceVal.textContent = `${data.average_confidence}%`;
         
-        // Add error handling for the image
-        cleanedPreview.onerror = () => {
-            console.error("Failed to load enhanced image from:", cleanedPreview.src);
-            cleanedPreview.src = imagePreview.src; // Fallback to original if enhanced fails
-        };
-        
-        cleanedPreview.src = `${API_URL}${data.cleaned_image_url}?t=${new Date().getTime()}`;
+        // Use base64 image if available, fallback to original preview
+        if (data.cleaned_image_b64) {
+            cleanedPreview.src = data.cleaned_image_b64;
+        } else {
+            cleanedPreview.src = imagePreview.src;
+        }
 
         saveToHistory(data.full_text, data.average_confidence);
 

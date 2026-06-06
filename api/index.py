@@ -14,8 +14,9 @@ CORS(app)  # Enable CORS for frontend communication
 if os.environ.get('VERCEL'):
     UPLOAD_FOLDER = '/tmp'
 else:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+    # Point to the root uploads folder when running locally
+    ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    UPLOAD_FOLDER = os.path.join(ROOT_DIR, 'uploads')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -36,6 +37,8 @@ def allowed_file(filename):
 def health_check():
     return jsonify({"status": "healthy", "message": "OCR Server is running"}), 200
 
+import base64
+
 @app.route('/extract', methods=['POST'])
 def extract_text():
     if 'image' not in request.files:
@@ -48,21 +51,21 @@ def extract_text():
         return jsonify({"error": "No selected file"}), 400
     
     if file and allowed_file(file.filename):
-        # Generate unique filename to avoid collisions
         filename = secure_filename(f"{uuid.uuid4()}_{file.filename}")
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
         try:
             # 1. Preprocess the image
-            # Returns two paths: one optimized for OCR, one for visual display
             ocr_path, display_path = preprocessor.preprocess(filepath)
             
-            # 2. Extract text using OCR from the optimized image
+            # 2. Extract text
             results = ocr_engine.extract_text(ocr_path, lang=lang)
             
-            # Add preview URL for the cleaned/display image
-            results['cleaned_image_url'] = f"/uploads/{os.path.basename(display_path)}"
+            # 3. Read display image as base64 for reliable delivery on Vercel
+            with open(display_path, "rb") as img_file:
+                b64_string = base64.b64encode(img_file.read()).decode('utf-8')
+                results['cleaned_image_b64'] = f"data:image/jpeg;base64,{b64_string}"
             
             return jsonify(results), 200
             
