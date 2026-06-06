@@ -53,6 +53,25 @@ header {
     text-align: center;
     margin-bottom: 3rem;
     color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.app-logo {
+    width: 80px;
+    height: 80px;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    transition: transform 0.3s ease;
+}
+
+[data-theme="dark"] .app-logo {
+    filter: drop-shadow(0 4px 10px rgba(255,255,255,0.1)) brightness(1.1);
+}
+
+.app-logo:hover {
+    transform: scale(1.1) rotate(5deg);
 }
 
 header h1 {
