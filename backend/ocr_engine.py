@@ -1,19 +1,25 @@
 import easyocr
 import numpy as np
 import re
+import os
 
 class OCREngine:
     def __init__(self):
-        # Initialize readers for common languages to avoid lag during requests
-        # We can initialize on-demand if we want to support 80+ languages
+        # On Vercel, we need to store models in /tmp
+        model_storage_dir = '/tmp/easyocr_models' if os.environ.get('VERCEL') else None
+        if model_storage_dir and not os.path.exists(model_storage_dir):
+            os.makedirs(model_storage_dir)
+
+        # Initialize readers for common languages
         self.readers = {
-            'en': easyocr.Reader(['en'])
+            'en': easyocr.Reader(['en'], model_storage_directory=model_storage_dir)
         }
+        self.model_storage_dir = model_storage_dir
 
     def _get_reader(self, lang_code):
         if lang_code not in self.readers:
             # Initialize new language reader on demand
-            self.readers[lang_code] = easyocr.Reader([lang_code])
+            self.readers[lang_code] = easyocr.Reader([lang_code], model_storage_directory=self.model_storage_dir)
         return self.readers[lang_code]
 
     def _clean_text(self, text):

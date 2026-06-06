@@ -28,7 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     let currentFile = null;
-    const API_URL = 'http://localhost:5000';
+    // On Vercel, use relative path for API
+    const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:5000' 
+        : '';
 
     // Theme Logic
     const savedTheme = localStorage.getItem('theme') || 'light';

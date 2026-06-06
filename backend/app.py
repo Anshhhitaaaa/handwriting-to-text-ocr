@@ -10,9 +10,13 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
 
 # Configuration
-# Use absolute path for upload folder to avoid serving issues
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+# Use /tmp for Vercel (only writable directory in serverless)
+if os.environ.get('VERCEL'):
+    UPLOAD_FOLDER = '/tmp'
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
