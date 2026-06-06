@@ -165,7 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: formData
             });
 
-            if (!response.ok) throw new Error('Failed to process image');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Server error');
+            }
 
             updateStep(2); // Extracting
             const data = await response.json();

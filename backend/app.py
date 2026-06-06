@@ -67,6 +67,7 @@ def extract_text():
             return jsonify(results), 200
             
         except Exception as e:
+            print(f"ERROR: {str(e)}") # This will show in Vercel logs
             return jsonify({"error": str(e)}), 500
         finally:
             # Note: In a production app, you might want a background task to clean up old files

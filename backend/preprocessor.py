@@ -44,8 +44,8 @@ class ImagePreprocessor:
         sharpened = cv2.filter2D(gray, -1, kernel)
 
         # 5. Denoising
-        # Bilateral filter is great for preserving edges (strokes) while removing background noise
-        denoised = cv2.bilateralFilter(sharpened, 9, 75, 75)
+        # Fast blur is better for serverless to avoid timeouts
+        denoised = cv2.GaussianBlur(sharpened, (3, 3), 0)
         
         # 6. Deskew
         deskewed_ocr = self._deskew(denoised)
