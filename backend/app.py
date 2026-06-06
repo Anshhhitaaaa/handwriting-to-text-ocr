@@ -42,7 +42,7 @@ def extract_text():
         return jsonify({"error": "No image file provided"}), 400
     
     file = request.files['image']
-    lang = request.form.get('lang', 'en')
+    lang = request.form.get('lang', 'eng')
     
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400

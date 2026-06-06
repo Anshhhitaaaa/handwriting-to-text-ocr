@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('image', currentFile);
-        formData.append('lang', langSelect.value);
+        formData.append('lang', langSelect.value || 'eng');
 
         showLoading(true);
         updateStep(0); // Uploading
